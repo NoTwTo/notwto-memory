@@ -1,6 +1,6 @@
 # NoTwTo Hotcache
 ## Generated: 2026-05-25 ACST
-## Version: 1.8 (Strategy B dual-direction · BUY at support · multi-entry tracking · backtest scripts)
+## Version: 1.9 (UTC+3 timezone fix · Strategy B dual-direction · BUY at support · multi-entry tracking)
 
 ### Current Status
 Account: $3,000.00 AUD (DEMO) | P&L this week: $0.00
@@ -33,7 +33,13 @@ Cooldown active: No
   - `smc_ob_backtest.py` — SMC Order Block H4+M5 — 60-day EURUSD
   - `london_orb_audit.py` — London ORB audit GBPUSD.i + USDJPY.i — 60-day
   - `orb_pipeline_audit.py` — deterministic 8-agent pipeline filter replay — 30-day (no Claude API)
-- **Tokyo S/R window**: 02:00–03:30 UTC (11:30–13:00 ACST); pre-scan 01:45 UTC; XAUUSD only
+- **CRITICAL timezone fix** (commit 4848ac1) — Eightcap MT5 server = UTC+3 (EEST), not UTC+2:
+  - Pre-scan:  22:30 UTC (01:30 MT5 / 08:00 ACST)
+  - Entry open: 23:00 UTC (02:00 MT5 / 08:30 ACST)
+  - Entry close: 00:30 UTC (03:30 MT5 / 10:00 ACST)  ← crosses midnight UTC
+  - Cross-midnight bug fixed: `trade_end_utc = session_start + timedelta(hours=1, minutes=30)`
+  - `get_next_tokyo_sr_utc()` fixed: uses `timedelta(hours=2)` for session_end detection
+- **Tokyo S/R window**: 23:00–00:30 UTC (08:30–10:00 ACST / 02:00–03:30 MT5); pre-scan 22:30 UTC; XAUUSD only
 
 ### XAUUSD Strategy Summary (code reference)
 ```
@@ -99,6 +105,7 @@ Max signals: 3/day | Leverage: 30:1 | No news ≤10 min before / ≤15 min after
 - [ ] Validate demo_relaxed: track how many sessions fire under relaxed gates vs standard — reassess after 10 sessions
 - [ ] A/B track XAUUSD ORB_ATR_GATED vs ASIAN_SWEEP performance over 20+ signals (Sage)
 - [ ] USDBRL: source B3/WDO direct-access broker before revisiting
+- [x] Eightcap MT5 UTC+3 timezone fix — session times corrected across bot ✅ COMPLETE (2026-05-25, commit 4848ac1)
 - [x] Strategy B BUY direction fully active — dual SELL+BUY channel trading ✅ COMPLETE (2026-05-25, commit 5bedb38)
 - [x] _tokyo_sr_trades population + multi-entry tracking fix ✅ COMPLETE (2026-05-25)
 - [x] Terminal summary shows all entries per session ✅ COMPLETE (2026-05-25)
