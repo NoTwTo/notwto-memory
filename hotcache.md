@@ -1,6 +1,6 @@
 # NoTwTo Hotcache
-## Generated: 2026-05-25 ACST
-## Version: 1.9 (UTC+3 timezone fix · Strategy B dual-direction · BUY at support · multi-entry tracking)
+## Generated: 2026-05-26 ACST
+## Version: 2.0 (SESSION SUMMARY lifecycle · daily log committed · SIGNAL_FIRED outcome state)
 
 ### Current Status
 Account: $3,000.00 AUD (DEMO) | P&L this week: $0.00
@@ -9,10 +9,21 @@ Last trade: None | Strategy A (ORB) + Strategy B (Tokyo S/R) both active
 Phase 6: COMPLETE (Week 1–4) ✅ — 8 agents, ~70s, smart routing, web research loop
 MT5 MCP: CONNECTED ✅ — direct MT5 tool access from Claude Code
 ECC Rules: INSTALLED ✅ — global agent orchestration + coding standards active
-Git: main branch | Latest push: 5bedb38
+Git: main branch | Latest push: e34c61c (daily log 2026-05-25)
 Cooldown active: No
 
-### Recent Changes (v1.8)
+### Recent Changes (v2.0)
+- **SESSION SUMMARY outcome lifecycle** (commit 58bb2ce) — 5-state outcome system for ORB→Phase 6 signals:
+  - `⏳ SIGNAL_FIRED` — Discord alert sent; Phase 6 pipeline running
+  - `✅ TRADE_TAKEN` — Phase 6 APPROVED and execution confirmed
+  - `❌ PIPELINE_REJECTED` — Phase 6 returned NO_SIGNAL / REJECTED / ABORTED
+  - `❌ NO_TRADE_BLOCKED` — Nova/spread blocked before signal
+  - `❌ NO_SIGNAL` — no ORB breakout
+  - Priority order enforced: TRADE_TAKEN > PIPELINE_REJECTED > SIGNAL_FIRED > NO_TRADE_BLOCKED > NO_SIGNAL
+  - Tokyo S/R unaffected — direct MT5 execution, no Phase 6 involvement
+- **Daily log 2026-05-25 committed** (commit e34c61c)
+
+### Previous Changes (v1.9)
 - **Strategy B BUY direction fully active** (commit 5bedb38) — channel trading now bidirectional:
   - SELL: M5 high touches resistance (±1.5 pts) + bearish pattern (shooting star / bearish engulfing)
   - BUY: M5 low touches support (±1.5 pts) + bullish pattern (hammer / bullish engulfing / pin bar)
