@@ -1,18 +1,39 @@
 # NoTwTo Hotcache
 ## Generated: 2026-05-26 ACST
-## Version: 2.0 (SESSION SUMMARY lifecycle · daily log committed · SIGNAL_FIRED outcome state)
+## Version: 2.1 (DEMO-DIRECT — ORB executes MT5 directly, Phase 6 bypassed in DEMO)
 
 ### Current Status
 Account: $3,000.00 AUD (DEMO) | P&L this week: $0.00
 Active: DEMO only — live account not funded | Mode: **demo_relaxed** enabled (config.json)
 Last trade: None | Strategy A (ORB) + Strategy B (Tokyo S/R) both active
-Phase 6: COMPLETE (Week 1–4) ✅ — 8 agents, ~70s, smart routing, web research loop
+Phase 6: CODE INTACT — bypassed in DEMO; re-enables when mode=LIVE + live_confirmed=true
 MT5 MCP: CONNECTED ✅ — direct MT5 tool access from Claude Code
 ECC Rules: INSTALLED ✅ — global agent orchestration + coding standards active
-Git: main branch | Latest push: e34c61c (daily log 2026-05-25)
+Git: main branch | Latest push: a1fab51 (DEMO-DIRECT)
 Cooldown active: No
 
-### Recent Changes (v2.0)
+### ORB Execution Mode (as of v2.1)
+```
+Config state              │ ORB behavior
+──────────────────────────┼────────────────────────────────────────────
+DEMO (current)            │ signal → Discord [DEMO-DIRECT] → mt5.order_send() directly
+LIVE + live_confirmed     │ signal → Discord [SIGNAL_FIRED] → Phase 6 (8 agents, ~70s)
+```
+To re-enable Phase 6: set `phase6.mode="LIVE"` AND `phase6.live_confirmed=true` in config.json
+(two-key lock — must be set manually, never automatically)
+
+### Recent Changes (v2.1)
+- **DEMO-DIRECT ORB execution** (commit a1fab51) — Phase 6 bypassed in DEMO mode:
+  - `_DEMO_DIRECT` flag computed at startup from `config.json phase6.mode + live_confirmed`
+  - All 3 emit functions check flag; DEMO → `_demo_direct_execute()`, LIVE → Phase 6
+  - `_demo_direct_execute()`: `mt5.order_send()` + posts to `trade_signals` + `errors`
+  - `_demo_direct_monitor()`: non-daemon thread, polls 30s, resolves TP1/TP2/SL/MANUAL
+  - `_demo_direct_write_journal()`: appends to `_Shared/lessons_learned.md` on close
+  - Discord embed footer: `"DEMO-DIRECT | MT5 executed — Phase 6 bypassed"`
+  - Terminal: `✅ TRADE TAKEN [DEMO-DIRECT]` | Discord session: `"TRADE TAKEN — DEMO-DIRECT"`
+  - Phase 6 code intact — re-activates on `mode=LIVE + live_confirmed=true`
+
+### Previous Changes (v2.0)
 - **SESSION SUMMARY outcome lifecycle** (commit 58bb2ce) — 5-state outcome system for ORB→Phase 6 signals:
   - `⏳ SIGNAL_FIRED` — Discord alert sent; Phase 6 pipeline running
   - `✅ TRADE_TAKEN` — Phase 6 APPROVED and execution confirmed
