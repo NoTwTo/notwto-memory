@@ -1,26 +1,37 @@
 # NoTwTo Hotcache
-## Generated: 2026-06-19 ACST
-## Version: 3.0 (timezone fix done · forward-test reset · first valid trade)
+## Generated: 2026-06-23 ACST
+## Version: 3.1 (forward test 1W-1L · margin≠risk blocker found)
 
 ### Current Status
-Account: ~$3,027.53 AUD (DEMO) | P&L this week: GBPUSD +19.6 pips
+Account: **$2,946.67 AUD** (DEMO) | P&L: GBPUSD +19.6 / EURUSD −77 pips
 Mode: **DEMO-DIRECT** (config.json phase6.mode = DEMO) — live account not funded
 Bot: RUNNING ✅ — Strategy A loop, sleeping to next NY open 21:30 ACST (12:00 UTC)
 Auto-start: At-logon launcher + Task Scheduler (dependency-ordered: MT5 → bot)
 Forward test: **RESET 2026-06-18** — PF count restarts from 0 (4 pre-fix trades archived INVALID)
-Record (post-fix, valid only): **1W – 0L**
+Record (post-fix, valid only): **1W – 1L**
 Phase 6: CODE INTACT — bypassed in DEMO; re-enables when mode=LIVE + live_confirmed=true
-MT5 MCP: CONNECTED ✅ | account 7942393 | Eightcap-Demo
+MT5 MCP: CONNECTED ✅ | account 7942393 | Eightcap-Demo | leverage 1:30 (ASIC)
 Git: main | Latest push: 1407335 (notwto-hq)
 
-### First Valid Post-Fix Trade ✅
+### Post-Fix Forward Test — 1W – 1L
 ```
-2026-06-18 | GBPUSD.i LONG | [DEMO-DIRECT] [ORB] 15UTC | ticket 235373783
-Entry 1.32285 | SL 1.32181 | TP1 1.32381 | TP2 1.32481 | lots 0.01
-Outcome: WIN — TP2 hit | +19.6 pips
+2026-06-18 | GBPUSD.i LONG  | [ORB] 15UTC | WIN  — TP2  | +19.6 pips | clean ORB
+????-??-?? | EURUSD.i       | [ORB]       | LOSS — SL   | −77   pips | false breakout, counter-trend
 ```
-This is the FIRST trade counted toward the new (post-timezone-fix) forward test.
+GBPUSD = first trade counted toward the new (post-timezone-fix) forward test.
+EURUSD loss = false breakout against the prevailing trend (price broke ORB, reversed, hit SL).
 All trades before f19c035 are archived INVALID in lessons_learned.md — do not count them.
+
+### ⚠️ Live-Readiness Blocker — Margin ≠ Risk (found 2026-06-23)
+- **Symptom**: risk-based sizing is **not margin-aware**. A **tight SL** → formula returns a
+  **large lot** (to hold $ risk constant) → notional exceeds free margin → **2nd trade of the
+  session can't open** (MT5 retcode **10019** No money / not enough margin).
+- **Concept**: risk (SL-based, our 1.5%/2.5% rule) ≠ margin (notional ÷ leverage). Under
+  **ASIC 1:30**, EURUSD 1.0 lot locks ≈$3,333 margin no matter how tight the SL.
+- **TODO before live**: margin pre-check (`order_calc_margin` vs `margin_free`); cap lot by
+  min(risk-lot, margin-lot) rounded DOWN; add SL floor; reserve headroom for concurrent signals.
+- **Backlog (NOT decided, n=2 noise)**: track whether counter-trend ORB entries lose more →
+  maybe add a trend filter. Tag each trade trend/counter-trend; revisit at meaningful sample.
 
 ### Timezone Fix — DONE ✅
 - **f19c035** — centralized timezone handling; ORB was reading a dead bar at the wrong
@@ -61,8 +72,11 @@ Veto is absolute — never skippable/bypassable.
 - **USDBRL.i**: ORB 27.8% / RSI(2) 23.9% — both failed; needs B3/WDO direct broker.
 
 ### Pending / Watch
-- [ ] Accumulate post-fix valid sample — only 1 trade (1W) so far; need a meaningful
+- [ ] **Margin guard before live** — sizing not margin-aware (retcode 10019 on trade 2 when
+      SL tight). Add margin pre-check + lot cap + SL floor. See blocker note above.
+- [ ] Accumulate post-fix valid sample — only 2 trades (1W-1L) so far; need a meaningful
       count before re-judging PF and considering live readiness.
+- [ ] Trend filter? (backlog, undecided) — the one loss was counter-trend; n=2 too small.
 - [ ] Broker live account — FP Markets / Eightcap application in progress; stay DEMO.
 - [x] Timezone fix (server UTC offset + explicit ORB candle) ✅ f19c035 / fda5cc1
 - [x] Forward-test reset — pre-fix trades archived INVALID, PF restart ✅ 2026-06-18
